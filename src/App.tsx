@@ -1,11 +1,42 @@
 import "./App.css";
 import { useState } from "react";
 
+// Keep the available categories typed so category state and lookup data stay in sync.
+type AlgorithmCategory = "Sorting" | "Trees" | "Map";
+
+// These symbols and example entries are starter content for the picker UI.
+const algorithmCategories: { name: AlgorithmCategory; icon: string }[] = [
+  { name: "Sorting", icon: "⇅" },
+  { name: "Trees", icon: "⑂" },
+  { name: "Map", icon: "⌖" },
+];
+
+const algorithmsByCategory: Record<AlgorithmCategory, string[]> = {
+  Sorting: ["Bubble Sort", "Insertion Sort", "Merge Sort", "Quick Sort"],
+  Trees: ["Binary Search Tree", "Tree Traversal", "AVL Tree"],
+  Map: ["Breadth-First Search", "Depth-First Search", "Dijkstra's Pathfinding"],
+};
+
 function App(){
   // variable declaration and make the "dark" as the default state
   const[theme, setTheme] = useState<"dark" | "light">("dark");
   const toggleTheme = ()=> {
     setTheme((currentTheme) => currentTheme === "dark"?"light":"dark");
+  };
+  // The picker starts in Sorting with Bubble Sort selected. It was for testing at the moment
+  const [activeCategory, setActiveCategory] = useState<AlgorithmCategory>("Sorting");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState("Bubble Sort");
+  // Search only the currently open category, ignoring letter case and outer spaces.
+  const visibleAlgorithms = algorithmsByCategory[activeCategory].filter((algorithm) =>
+    algorithm.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  );
+
+  // Switching category clears the search and selects that category's first example.
+  const chooseCategory = (category: AlgorithmCategory) => {
+    setActiveCategory(category);
+    setSearchQuery("");
+    setSelectedAlgorithm(algorithmsByCategory[category][0]);
   };
 
   return (
@@ -68,13 +99,58 @@ function App(){
 
       {/* middle sction layouts */}
       <section className = "center-layouts" aria-label = "Algorithm workspace">
-        <aside className = "middle">
-          <h2>
-            <span className = "algorithm-icon" aria-hidden = "true">
-              ⚙
-            </span>
-            Algorithms
-          </h2>
+        <aside className = "middle algorithm-selection">
+          <div className="details-icon" aria-hidden="true">
+            <span>⚙</span>
+          </div>
+          <h2>Algorithms</h2>
+          {/* Category buttons control which algorithm group appears below. */}
+          <div className="algorithm-categories" role="group" aria-label="Algorithm categories">
+            {algorithmCategories.map((category) => (
+              <button
+                className={`category-button ${activeCategory === category.name ? "is-active" : ""}`}
+                key={category.name}
+                type="button"
+                aria-pressed={activeCategory === category.name}
+                onClick={() => chooseCategory(category.name)}
+              >
+                <span className="category-icon" aria-hidden="true">{category.icon}</span>
+                <span>{category.name}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* The search input filters the active category as the user types. */}
+          <label className="algorithm-search">
+            <span className="search-icon" aria-hidden="true">⌕</span>
+            <span className="visually-hidden">Search {activeCategory} algorithms</span>
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder={`Search ${activeCategory.toLowerCase()}...`}
+            />
+          </label>
+
+          {/* Selecting an item marks it active; algorithm execution is added later. */}
+          <div className="algorithm-list" aria-label={`${activeCategory} algorithms`}>
+            {visibleAlgorithms.length > 0 ? visibleAlgorithms.map((algorithm) => (
+              <button
+                className={`algorithm-option ${selectedAlgorithm === algorithm ? "is-selected" : ""}`}
+                key={algorithm}
+                type="button"
+                aria-pressed={selectedAlgorithm === algorithm}
+                onClick={() => setSelectedAlgorithm(algorithm)}
+              >
+                <span>{algorithm}</span>
+                <span className="option-state" aria-hidden="true">
+                  {selectedAlgorithm === algorithm ? "ACTIVE" : "›"}
+                </span>
+              </button>
+            )) : (
+              <p className="algorithm-empty" role="status">No matching algorithms.</p>
+            )}
+          </div>
         </aside>
 
         <section className = "middle area" aria-label = "sorting">
