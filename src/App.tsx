@@ -1,8 +1,15 @@
 import "./App.css";
+import { useState } from "react";
 
 function App(){
+  // variable declaration and make the "dark" as the default state
+  const[theme, setTheme] = useState<"dark" | "light">("dark");
+  const toggleTheme = ()=> {
+    setTheme((currentTheme) => currentTheme === "dark"?"light":"dark");
+  };
+
   return (
-    <main className = "academy">
+    <main className = {`academy theme-${theme}`}>
       {/* navigation layouts */}
       <header className = "topbar">
         <a className = "logo" href = "/" aria-label = "logo design">
@@ -38,9 +45,11 @@ function App(){
         </nav>
         <div className = "rhs-actions">
           <span className = "level">★ Iron · Lv. 01</span>
-          <button className = "theme-toggle" type = "button" aria-label = "switch" aria-pressed = "true">
-            <span className = "sun" aria-hidden = "true">☼</span>
-            <span className = "moon active" aria-hidden = "true">
+          <button className = "theme-toggle" type = "button" 
+          onClick={toggleTheme} aria-label = {theme === "dark"?"Switch to light theme":
+          "Switch to dark theme"} aria-pressed = {theme === "dark"}>
+            <span className ={`sun ${theme === "light" ? "active" : ""}`} aria-hidden = "true">☼</span>
+            <span className = {`moon ${theme === "dark" ? "active" : ""}`} aria-hidden = "true">
               <svg viewBox = "0 0 24 24">
                 <path d ="M19.2 15.4A8.2 8.2 0 0 1 8.6 4.8a8.2 8.2 0 1 0 10.6 10.6Z"
                   fill="currentColor">
@@ -74,12 +83,6 @@ function App(){
         </section>
 
         <aside className = "middle details">
-          {/* Decorative panel trim: inset outline and top rails, separate from the badge/content. */}
-          <span className="details-inset-frame" aria-hidden="true" />
-          <div className="details-frame-rails" aria-hidden="true">
-            <span />
-            <span />
-          </div>
           <div className = "details-icon" aria-hidden = "true">
             <span>⚔︎</span>
           </div>
