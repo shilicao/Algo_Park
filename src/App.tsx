@@ -86,6 +86,29 @@ function App(){
           <h2>Algorithm Details</h2>
         </aside>
       </section>
+
+      {/* Bottom learning panels*/}
+      <section className="bottom-panels" aria-label="Learning details">
+        <section className="bottom-panel performance-tracker" aria-labelledby="performance-heading">
+          <h2 id="performance-heading"><span className="performance-heading-icon" aria-hidden="true">▮▮▮</span> Performance Counters</h2>
+          <div className="performance-metrics">
+            {/* left empty */}
+          </div>
+        </section>
+
+        <section className="bottom-panel pseudocode-card" aria-labelledby="pseudocode-heading">
+          <h2 id="pseudocode-heading"><span className="pseudocode-heading-icon" aria-hidden="true">‹/›</span> Pseudocode</h2>
+          {/* left empty */}
+        </section>
+
+        <aside className="bottom-panel tip-card" aria-labelledby="tip-heading">
+          <h2 id="tip-heading"><span className="tip-heading-icon" aria-hidden="true">☼</span> Tips</h2>
+          <div className="tip-copy">
+            {/* left empty */}
+          </div>
+          <span className="tip-orb" aria-hidden="true">✦</span>
+        </aside>
+      </section>
     </main>
   )
 }
