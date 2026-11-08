@@ -226,7 +226,7 @@
     font: inherit;
     font-size: 11px;
     cursor: pointer;
-    transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+    transition: border-color 150ms ease, background 150ms ease, color 150ms ease, box-shadow 150ms ease;
 }
 .category-icon {
     /* Larger, bold symbols remain decorative; the button text names each category. */
@@ -245,6 +245,8 @@
 .category-button:focus-visible {
     border-color: rgba(76, 196, 255, 0.72);
     outline: none;
+    transform:translateY(-2px);
+    box-shadow: 0 5px 14px rgba(35,157,255,0.22);
 }
 .category-button.is-active {
     border-color: rgba(67, 197, 255, 0.92);
