@@ -1,20 +1,126 @@
 import "./App.css";
 import { useState } from "react";
 
-// Keep the available categories typed so category state and lookup data stay in sync.
 type AlgorithmCategory = "Sorting" | "Trees" | "Map";
+type AlgorithmDetails = {
+  summary: string; 
+  best:string; 
+  worst:string;
+  average:string;
+  spaceComplexity:string}
 
 // These symbols and example entries are starter content for the picker UI.
-const algorithmCategories: { name: AlgorithmCategory; icon: string }[] = [
+const algorithmCategories: { name: AlgorithmCategory; icon: string }[] = 
+[
   { name: "Sorting", icon: "⇅" },
   { name: "Trees", icon: "⑂" },
   { name: "Map", icon: "⌖" },
 ];
 
-const algorithmsByCategory: Record<AlgorithmCategory, string[]> = {
-  Sorting: ["Bubble Sort", "Insertion Sort", "Merge Sort", "Quick Sort"],
-  Trees: ["Binary Search Tree", "Tree Traversal", "AVL Tree"],
+const algorithmsByCategory: Record<AlgorithmCategory, string[]> = 
+{
+  Sorting: ["Bubble Sort", "Insertion Sort", "Merge Sort", "Quick Sort", "Heap Sort", "Selection Sort"],
+  Trees: ["Pre-order Traversal", "In-order Traversal", "Post-order Traversal", "Level-order Traversal"],
   Map: ["Breadth-First Search", "Depth-First Search", "Dijkstra's Pathfinding"],
+};
+const algoDetails:Partial<Record<string, AlgorithmDetails>> = 
+{
+  //Sortings
+  "Bubble Sort":{
+    summary:"Simplest sorting algorithm. Repeatedly swapping the adjacent elements if they are in the wrong order. Not efficent for large set of datas.",
+    best:"O(n)",
+    worst:"O(n²)",
+    average:"O(n²)",
+    spaceComplexity:"O(1)"
+  },
+  "Insertion Sort":{
+    summary:"Builds a sorted array one element at a time by virtually split the list into sorted and unsorted parts.",
+    best:"O(n)",
+    worst:"O(n²)",
+    average:"O(n²)",
+    spaceComplexity:"O(1)",
+  },
+  "Merge Sort":{
+    summary:"Divide-and-conquer sorting algorithm. Recrusively divides an array in half, sorts each half, and merges pieces back.",
+    best:"O(nlogn)",
+    worst:"O(nlogn)",
+    average:"O(nlogn)",
+    spaceComplexity:"O(n)",
+  },
+  "Quick Sort":{
+    summary:"Partitions values around a pivot, then sorts the resulting sections.",
+    best:"O(nlogn)",
+    worst:"O(n²)",
+    average:"O(nlogn)",
+    spaceComplexity:"O(logn)",
+  },
+  "Heap Sort":{ 
+    summary:" Visualizes the array elements as a binary tree and uses a Max-Heap structure to repeatedly extract the maximum value.",
+    best:"O(nlogn)",
+    worst:"O(nlogn)",
+    average:"O(nlogn)",
+    spaceComplexity:"O(1)",
+  },
+  "Selection Sort":{
+    summary:"Steps through the array, finds the absolute smallest item in the unsorted section, and swaps it to the front.",
+    best:"O(n²)",
+    worst:"O(n²)",
+    average:"O(n²)",
+    spaceComplexity:"O(1)",
+  },
+
+  //trees, where h is the height of a tree, and w is the max width of a tree.
+  "Pre-order Traversal":{
+    summary:"Root -> Left Subtree -> Right Subtree.",
+    best:"O(n)",
+    worst:"O(n)",
+    average:"O(n)",
+    spaceComplexity:"O(h)",
+  },
+  "In-order Traversal":{
+    summary:"Left Subtree -> Root -> Right Subtree.",
+    best:"O(n)",
+    worst:"O(n)",
+    average:"O(n)",
+    spaceComplexity:"O(h)",
+  },
+  "Post-order Traversal":{
+    summary:"Left Subtree -> Right Subtree -> Root",
+    best:"O(n)",
+    worst:"O(n)",
+    average:"O(n)",
+    spaceComplexity:"O(h)",
+  },
+  "Level-order Traversal":{
+    summary:"Visits nodes level by level, starting from the root and moving from left to right across each horizontal depth.",
+    best:"O(n)",
+    worst:"O(n)",
+    average:"O(n)",
+    spaceComplexity:"O(w)",
+  },
+
+  //graphs/maps
+  "Breadth-First Search": {
+    summary:"Explores a graph outward from the start node, one level at a time.",
+    best:"O(V + E)",
+    worst:"O(V + E)",
+    average:"O(V + E)",
+    spaceComplexity:"O(V)",
+  },
+  "Depth-First Search":{
+    summary:"Explores as far as possible along one path before backtracking.",
+    best:"O(V + E)",
+    worst:"O(V + E)",
+    average:"O(V + E)",
+    spaceComplexity:"O(V)",
+  },
+  "Dijkstra's Pathfinding":{
+    summary:"Finds shortest paths from a start node when edge weights are non-negative.",
+    best:"O((V + E) log V)",
+    worst:"O((V + E) log V)",
+    average:"O((V + E) log V)",
+    spaceComplexity:"O(V)",
+  },
 };
 
 function App(){
@@ -29,6 +135,9 @@ function App(){
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<string | null>(null);
     
+  //Holds data entry that will be to render details to the right panel. 
+  const details = selectedAlgorithm ? algoDetails[selectedAlgorithm]:undefined;
+
   // Search only the currently open category, ignoring letter case and outer spaces.
   const visibleAlgorithms = activeCategory ? algorithmsByCategory[activeCategory].filter
   ((algorithm)=>algorithm.toLowerCase().includes(searchQuery.trim().toLowerCase())):[];
@@ -106,20 +215,20 @@ function App(){
           </div>
           <h2>Algorithms</h2>
           {/* Category buttons control which algorithm group appears below. */}
-          <div className="algorithm-categories" role="group" aria-label="Algorithm categories">
-            {algorithmCategories.map((category) => (
-              <button
-                className={`category-button ${activeCategory === category.name ? "is-active" : ""}`}
-                key={category.name}
-                type="button"
-                aria-pressed={activeCategory === category.name}
-                onClick={() => chooseCategory(category.name)}
-              >
-                <span className="category-icon" aria-hidden="true">{category.icon}</span>
-                <span>{category.name}</span>
-              </button>
-            ))}
-          </div>
+            <div className="algorithm-categories" role="group" aria-label="Algorithm categories">
+              {algorithmCategories.map((category) => (
+                <button
+                  className={`category-button ${activeCategory === category.name ? "is-active" : ""}`}
+                  key={category.name}
+                  type="button"
+                  aria-pressed={activeCategory === category.name}
+                  onClick={() => chooseCategory(category.name)}
+                >
+                  <span className="category-icon" aria-hidden="true">{category.icon}</span>
+                  <span>{category.name}</span>
+                </button>
+              ))}
+            </div>
 
           {activeCategory && (
           <>
@@ -156,24 +265,24 @@ function App(){
             </label>
 
             {/* Algorithm is only active when user select an entry. */}
-            <div className="algorithm-list" aria-label={`${activeCategory} algorithms`}>
-              {visibleAlgorithms.length > 0 ? visibleAlgorithms.map((algorithm) => (
-                <button
-                  className={`algorithm-option ${selectedAlgorithm === algorithm ? "is-selected" : ""}`}
-                  key={algorithm}
-                  type="button"
-                  aria-pressed={selectedAlgorithm === algorithm}
-                  onClick={() => setSelectedAlgorithm(algorithm)}
-                >
-                  <span>{algorithm}</span>
-                  <span className="option-state" aria-hidden="true">
-                    {selectedAlgorithm === algorithm ? "ACTIVE" : "›"}
-                  </span>
-                </button>
-              )) : (
-                <p className="algorithm-empty" role="status">No matching algorithms.</p>
-              )}
-            </div>
+              <div className="algorithm-list" aria-label={`${activeCategory} algorithms`}>
+                {visibleAlgorithms.length > 0 ? visibleAlgorithms.map((algorithm) => (
+                  <button
+                    className={`algorithm-option ${selectedAlgorithm === algorithm ? "is-selected" : ""}`}
+                    key={algorithm}
+                    type="button"
+                    aria-pressed={selectedAlgorithm === algorithm}
+                    onClick={() => setSelectedAlgorithm(algorithm)}
+                  >
+                    <span>{algorithm}</span>
+                    <span className="option-state" aria-hidden="true">
+                      {selectedAlgorithm === algorithm ? "ACTIVE" : "›"}
+                    </span>
+                  </button>
+                )) : (
+                  <p className="algorithm-empty" role="status">No matching algorithms.</p>
+                )}
+              </div>
           </>
           )}
         </aside>
@@ -188,6 +297,37 @@ function App(){
             <span>⚔︎</span>
           </div>
           <h2>Algorithm Details</h2>
+          {/* render algorithm details to the right panel. */}
+          {selectedAlgorithm && details ? (
+            <div className = "DETAIL-LIST">
+              <p className = "details-heading">SELECTED METHOD</p>
+              <h3 className = "details-name">{selectedAlgorithm}</h3>
+              <p className = "details-summary">{details.summary}</p>
+
+              <h4 className = "complexity">TIME COMPLEXITY</h4>
+              <dl className = "complexity-list">
+                <div>
+                  <dt>Best Case:</dt>
+                  <dd>{details.best}</dd>
+                </div>
+                <div>
+                  <dt>Worst Case:</dt>
+                  <dd>{details.worst}</dd>
+                </div>
+                <div>
+                  <dt>Average Case:</dt>
+                  <dd>{details.average}</dd>
+                </div>
+                  <dt>Space Complexity:</dt>
+                  <dd>{details.spaceComplexity}</dd>
+              </dl>
+            </div>
+          ):( 
+            // entry handle
+            <p className = "unknown-selection">
+              {selectedAlgorithm ? `Details for ${selectedAlgorithm} not available at the moment.`:""}
+            </p>
+          )}
         </aside>
       </section>
 
