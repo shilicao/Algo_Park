@@ -577,6 +577,39 @@
     font-family: Consolas, monospace;
     font-weight: 800;
 }
+.code {
+   display:grid;
+   gap:1px;
+   max-height:110px;
+   margin:10px 0 0;
+   padding: 7px 8px 7px 34px;
+   overflow:auto;
+   border:1px solid rgba(111, 132, 194, 0.2);
+   border-radius:8px;
+   background:rgba(3,9,30,0.72);
+   color:#dbe3ff;
+   font:12px/1.25 Consolas, "Courier New", monospace;
+   list-style:decimal;
+   scrollbar-width:thin;
+   scrollbar-color: rgba(94,132,208,0.55) transparent; 
+}
+.code li {
+    padding-left:4px;
+    white-space:pre;
+}
+.code li::marker {
+    color:#7888b5;
+}
+.code code{
+    color:inherit;
+    font:inherit;
+}
+.no-code {
+    margin:12px 2px 0;
+    color:#bdc8ee;
+    font-size:12px;
+    line-height:1.5;
+}
 
 .tip-heading-icon {
     color: #ffd45f;
@@ -668,6 +701,8 @@
   background: rgba(255, 207, 91, 0.3);
   box-shadow: 0 0 8px rgba(255, 190, 50, 0.4);
 }
+
+/* algorithm detail panel color override for light theme. */
 .academy.theme-light .details .details-heading,
 .academy.theme-light .details .complexity {
     color: #176b86;
@@ -682,4 +717,17 @@
 .academy.theme-light .details .complexity-list dt,
 .academy.theme-light .details .unknown-selection {
     color: #34415d;
+}
+
+/* algorithm detail panel color override for light theme. */
+.academy.theme-light .code {
+    border-color:rgba(84,107, 157, 0.3);
+    background:rgba(242,246,255,0.9);
+    color:#293854;
+}
+.academy.theme-light .code li::marker{
+    color:#687ca6;
+}
+.academy.theme-light .no-code {
+    color:#405071;
 }

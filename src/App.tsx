@@ -7,7 +7,9 @@ type AlgorithmDetails = {
   best:string; 
   worst:string;
   average:string;
-  spaceComplexity:string}
+  spaceComplexity:string;
+  psedocode?:string[]; //? means algorithm can have detail before code. 
+}
 
 // These symbols and example entries are starter content for the picker UI.
 const algorithmCategories: { name: AlgorithmCategory; icon: string }[] = 
@@ -31,7 +33,16 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
     best:"O(n)",
     worst:"O(n²)",
     average:"O(n²)",
-    spaceComplexity:"O(1)"
+    spaceComplexity:"O(1)",
+    psedocode: [
+      "for i = 0 to n - 1",
+      "  for j = 0 to n - i - 2",
+      "    if array[j] > array[j + 1]",
+      "      swap(array[j], array[j + 1])",
+      "    end if",
+      "  end inner for",
+      "end outer for",
+    ],
   },
   "Insertion Sort":{
     summary:"Builds a sorted array one element at a time by virtually split the list into sorted and unsorted parts.",
@@ -342,7 +353,19 @@ function App(){
 
         <section className="bottom-panel pseudocode-card" aria-labelledby="pseudocode-heading">
           <h2 id="pseudocode-heading"><span className="pseudocode-heading-icon" aria-hidden="true">‹/›</span> Pseudocode</h2>
-          {/* left empty */}
+          {/* render details of pesudocode*/}
+          {selectedAlgorithm && details?.psedocode ? (
+            <ol className = "code">
+              {details.psedocode.map((line, index)=>(
+                <li key={`${selectedAlgorithm}-${index}`}>
+                  <code>{line}</code>
+                </li>
+              ))}
+            </ol>
+          ):(<p className = "no-code">
+              {selectedAlgorithm ? `pseudocode for ${selectedAlgorithm} is unavailable at the moment.` :""}
+            </p>
+          )}
         </section>
 
         <aside className="bottom-panel tip-card" aria-labelledby="tip-heading">
