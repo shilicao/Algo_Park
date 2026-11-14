@@ -317,6 +317,10 @@ function App(){
   const visibleAlgorithms = activeCategory ? algorithmsByCategory[activeCategory].filter
   ((algorithm)=>algorithm.toLowerCase().includes(searchQuery.trim().toLowerCase())):[];
 
+  //state holder for array size and speed. 
+  const[arraySize, setArraySize] = useState(0);
+  const[speed, setSpeed] = useState(1);
+
   //choose a category reveal its list and search function bar.
   const chooseCategory = (category: AlgorithmCategory) => {
     setActiveCategory(category);
@@ -460,11 +464,84 @@ function App(){
               </div>
           </>
           )}
+
+          {/* Keep array size in the algorithm selection. */}
+          <div className="num_entry array-size-control">
+            <div className="Input_heading">
+              <label htmlFor="array_size">Array Size</label>
+              <input
+                id="array_size"
+                type="number"
+                min="0"
+                max="100"
+                value={arraySize}
+                onChange={(event) => {
+                  const value = event.currentTarget.valueAsNumber;
+                  if (Number.isFinite(value)) {
+                    setArraySize(Math.min(100, Math.max(0, value)));
+                  }
+                }}
+              />
+            </div>
+            <input
+              className="control_range"
+              type="range"
+              min="0"
+              max="100"
+              value={arraySize}
+              aria-label="Array size"
+              onChange={(event) =>
+                setArraySize(Number(event.currentTarget.value))
+              }
+            />
+          </div>
         </aside>
 
         <section className = "middle area" aria-label = "sorting">
-          <div className = "area-header">Sorting Section</div>
-          <div className = "area-holder">Visualization</div>
+          {/* The rounded arena contains only its heading and visualization. */}
+          <div className="sorting-arena">
+            <div className = "area-header">
+              <span>Sorting Section</span>
+              <span className = "sizeCount">{arraySize} values</span>
+            </div>
+
+            <div className="area-holder">
+              {arraySize === 0 ? "Set an array size to begin" : "Animation"}
+            </div>
+          </div>
+
+          {/* Playback and speed controls sit below, outside the animation frame. */}
+          <div className="playback-toolbar" aria-label="Visualization controls">
+            <div className="playback-buttons" role="group" aria-label="Playback">
+              <button className="playback-button play-button" type="button" aria-label="Play">
+                <span aria-hidden="true">▶</span> Play
+              </button>
+              <button className="playback-button" type="button" aria-label="Pause">
+                <span aria-hidden="true">Ⅱ</span> Pause
+              </button>
+              <button className="playback-button" type="button" aria-label="Step">
+                <span aria-hidden="true">›</span> Step
+              </button>
+              <button className="playback-button" type="button" aria-label="Reset">
+                <span aria-hidden="true">↻</span> Reset
+              </button>
+            </div>
+
+            <div className="speed-control">
+              <label htmlFor="SPEED"><span aria-hidden="true">◴</span> Speed</label>
+              <input
+                className="control_range"
+                id="SPEED"
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.5"
+                value={speed}
+                onChange={(event) => setSpeed(Number(event.currentTarget.value))}
+              />
+              <output htmlFor="SPEED">{speed.toFixed(1)}x</output>
+            </div>
+          </div>
         </section>
 
         <aside className = "middle details">

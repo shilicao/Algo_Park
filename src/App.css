@@ -203,6 +203,15 @@
     border-radius: 5px;
     pointer-events: none;
 }
+.array-size-control {
+    /* Separate array sizing from the algorithm list while keeping it in the left panel. */
+    margin-top: 14px;
+    padding-top: 11px;
+    border-top: 1px solid rgba(212, 167, 77, 0.26);
+}
+.algorithm-selection .control_range {
+    margin-top: 2px;
+}
 /* Compact three-way category picker keeps the visualization as the focal point. */
 .algorithm-categories {
     display: grid;
@@ -366,26 +375,156 @@
     font-size:12px;
 }
 .area {
-    border-color:rgba(74, 190, 255, 0.78);
+    box-sizing: border-box;
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+.sorting-arena {
+    overflow: hidden;
+    padding: 11px;
+    border: 1px solid rgba(74, 190, 255, 0.78);
+    border-radius: 12px;
     background: radial-gradient(ellipse at center, rgba(25, 87, 180, 0.2), transparent 65%),
-    rgba(4, 12, 37, 0.92);
-    box-shadow:0 0 20px rgba(43, 164, 255, 0.14);
+        rgba(4, 12, 37, 0.92);
+    box-shadow: 0 0 20px rgba(43, 164, 255, 0.14);
 }
 .area-header {
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 1px 2px 9px;
     color:#c6d2f6;
-    font-size:11px;
+    font-size:12px;
+}
+.sizeCount {
+    color:#8fa6d8;
+    font-size:12px;
 }
 .area-holder {
     display:grid;
     place-items:center;
-    min-height:360px;
+    min-height:250px;
+    flex: 0 1 260px;
+    overflow:hidden;
+    border:1px solid rgba(74, 190, 255, 0.25);
+    border-radius:9px;
     color:#8394c4;
+    font-size:14px;
     background-image:
         linear-gradient(rgba(82, 139, 230, 0.09) 1px, transparent 1px),
         linear-gradient(90deg, rgba(82, 139, 230, 0.09) 1px, transparent 1px);
-    background-size:36px 36px
+    background-size:36px 36px;
 }
-
+.playback-toolbar {
+    display:grid;
+    grid-template-columns: auto minmax(150px, 1fr);
+    align-items:center;
+    gap:14px;
+    border:1px solid rgba(92, 126, 196, 0.30);
+    border-radius:10px;
+    padding:10px 12px;
+    background:rgba(4,12,37,0.72);
+}
+.playback-buttons {
+    display:grid;
+    grid-template-columns: repeat(4, minmax(58px, auto));
+    gap:7px;
+}
+.playback-button {
+    display:flex;
+    min-height:42px;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding:6px 9px;
+    border:1px solid rgba(116, 144, 207, 0.34);
+    border-radius:7px;
+    color:#d3dcfa;
+    background:linear-gradient(145deg, rgba(29, 42, 91, 0.9), rgba(9, 17, 49, 0.96));
+    font:inherit;
+    font-size:12px;
+    cursor:pointer;
+}
+.playback-button span {
+    color:#9fafff;
+    font-size:15px;
+    font-weight:700;
+}
+.playback-button:hover,
+.playback-button:focus-visible {
+    border-color:rgba(78, 200, 255, 0.82);
+    outline:none;
+    box-shadow:0 0 10px rgba(49, 174, 255, 0.2);
+}
+.playback-button.play-button {
+    border-color:rgba(255, 190, 52, 0.9);
+    color:#fff6db;
+    background:linear-gradient(145deg, #ffbd28, #bd6800);
+    box-shadow:inset 0 0 10px rgba(255, 241, 160, 0.32), 0 0 10px rgba(255, 168, 22, 0.22);
+    font-size:14px;
+    font-weight:700;
+}
+.playback-button.play-button span {
+    color:#fff7d8;
+}
+.speed-control {
+    display:grid;
+    grid-template-columns:auto minmax(70px, 1fr) auto;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+    color:#c6d2f6;
+    font-size:12px;
+}
+.speed-control label {
+    white-space:nowrap;
+}
+.speed-control label span {
+    margin-right:4px;
+    color:#a9a4ff;
+    font-size:16px;
+}
+.speed-control output {
+    color:#fff0b0;
+    font-family:Consolas, monospace;
+    white-space:nowrap;
+}
+.num_entry {
+    min-width:0;
+}
+.Input_heading {
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap:8px;
+    margin-bottom:8px;
+    color:#c6d2f6;
+    font-size:12px;
+}
+.Input_heading input[type = "number"]{
+    width:60px;
+    padding:4px 6px;
+    border:1px solid rgba(115, 147, 211, 0.5);
+    border-radius:6px;
+    color:#f2f4ff;
+    background:rgba(6,14,40,0.9);
+}
+.Input_heading output{
+    color:#fff0b0;
+    font-family:Consolas, monospace;
+}
+.control_range {
+    display:block;
+    width:100%;
+    accent-color:#35cfff;
+}
 /* algorithm detail panel */
 .details {
     position: relative;
@@ -505,7 +644,13 @@
         min-height:auto;
     }
     .area-holder {
-        min-height:280px;
+        min-height:240px;
+    }
+    .playback-toolbar {
+        grid-template-columns:1fr;
+    }
+    .playback-buttons {
+        grid-template-columns:repeat(4, minmax(0, 1fr));
     }
     .details {
         min-height:auto;
@@ -702,6 +847,12 @@
 .academy.theme-light .algorithm-search input { color: #172344; }
 .academy.theme-light .algorithm-search input::placeholder { color: #64769b; }
 .academy.theme-light .area {
+    border:0;
+    background:transparent;
+    box-shadow:none;
+}
+.academy.theme-light .sorting-arena {
+    border-color:rgba(74, 143, 214, 0.72);
     background:radial-gradient(ellipse at center, rgba(95, 150, 235, 0.16), transparent 65%),
     rgba(225, 235, 255, 0.94);
 }
@@ -734,6 +885,38 @@
     color: #34415d;
 }
 
+/* theme override for sorting */
+.academy.theme-light .area-holder,
+.academy.theme-light .Input_heading {
+    color:#3a4b70;
+}
+.academy.theme-light .sizeCount {
+    color:#596b99;
+}
+.academy.theme-light .playback-toolbar{
+    border-color:rgba(84, 107, 157, 0.3);
+    background:rgba(225, 234, 253, 0.82);
+}
+.academy.theme-light .playback-button:not(.play-button) {
+    border-color:rgba(84, 107, 157, 0.34);
+    color:#263657;
+    background:linear-gradient(145deg, rgba(246, 248, 255, 0.96), rgba(215, 226, 250, 0.96));
+}
+.academy.theme-light .speed-control {
+    color:#3a4b70;
+}
+.academy.theme-light .speed-control output {
+    color:#75520e;
+}
+.academy.theme-light .Input_heading input[type = "number"]{
+    border-color:rgba(84,107,157,0.38);
+    color:#172344;
+    background:rgba(246,248,255,0.95);
+}
+.academy.theme-light .Input_heading output{
+    color:#75520e;
+}
+
 /* algorithm detail panel color override for light theme. */
 .academy.theme-light .code {
     border-color:rgba(84,107, 157, 0.3);
@@ -752,3 +935,4 @@
 .academy.theme-light .notip {
     color:#405071;
 }
+
