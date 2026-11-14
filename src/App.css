@@ -610,19 +610,34 @@
     font-size:12px;
     line-height:1.5;
 }
-
 .tip-heading-icon {
     color: #ffd45f;
     font-size: 22px;
 }
-
-
 .tip-card {
     background:
       radial-gradient(circle at 92% 92%, rgba(33, 134, 255, 0.16), transparent 24%),
       linear-gradient(145deg, rgba(12, 20, 51, 0.94), rgba(6, 13, 36, 0.96));
 }
 
+.tip-card .tip-copy {
+    position:relative;
+    z-index:1;
+    margin-top:12px;
+    padding-right:36px;
+}
+.TAKE_NOTE {
+    margin:0;
+    color:#ffd875;
+    font-size:14px;
+    line-height:1.5;
+}
+.notip {
+    margin:0;
+    color:#bdc8ee;
+    font-size:12px;
+    line-height:1.5;
+}
 .tip-orb {
     position: absolute;
     right: 24px;
@@ -729,5 +744,11 @@
     color:#687ca6;
 }
 .academy.theme-light .no-code {
+    color:#405071;
+}
+.academy.theme-light .TAKE_NOTE {
+    color:#74520f;
+}
+.academy.theme-light .notip {
     color:#405071;
 }

@@ -9,6 +9,7 @@ type AlgorithmDetails = {
   average:string;
   spaceComplexity:string;
   psedocode?:string[]; //? means algorithm can have detail before code. 
+  tip:string;
 }
 
 // These symbols and example entries are starter content for the picker UI.
@@ -43,6 +44,7 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
       "  end inner for",
       "end outer for",
     ],
+    tip:"After each pass, another largest value is fixed at the end.",
   },
   "Insertion Sort":{
     summary:"Builds a sorted array one element at a time by virtually split the list into sorted and unsorted parts.",
@@ -61,6 +63,7 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
       "  array[j + 1] = key",
       "end for",
     ],
+    tip:"The left portion stays sorted as each new value is inserted into place.",
   },
   "Merge Sort":{
     summary:"Divide-and-conquer sorting algorithm. Recrusively divides an array in half, sorts each half, and merges pieces back.",
@@ -84,6 +87,7 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
       "  append remaining items to result",
       "  return result",
     ],
+    tip:"During merging stage, compare the first unmerged value from each half.",
   },
   "Quick Sort":{
     summary:"Partitions values around a pivot, then sorts the resulting sections.",
@@ -109,6 +113,7 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
       "  swap(array[i], array[high])",
       "  return i",
     ],
+    tip:"One partitioning finishes, the pivot would stay in its final position. ",
   },
   "Heap Sort":{ 
     summary:" Visualizes the array elements as a binary tree and uses a Max-Heap structure to repeatedly extract the maximum value.",
@@ -134,6 +139,7 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
       "    swap(array[root], array[largest])",
       "    heapify(array, size, largest)",
     ],
+    tip:"After removes the maximum, restore the heap before extracting again.",
   },
   "Selection Sort":{
     summary:"Steps through the array, finds the absolute smallest item in the unsorted section, and swaps it to the front.",
@@ -150,6 +156,7 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
       "  swap(array[i], array[minimum])",
       "end for",
     ],
+    tip:"Find the minimum in the unsorted portion and move the value to the front.",
   },
 
   //trees, where h is the height of a tree, and w is the max width of a tree.
@@ -167,6 +174,7 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
       "  preorder(node->left)",
       "  preorder(node->right)",
     ],
+    tip:"The root is visited before either subtree.",
   },
   "In-order Traversal":{
     summary:"Left Subtree -> Root -> Right Subtree.",
@@ -182,6 +190,7 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
       "  visit(node)",
       "  inorder(node->right)",
     ],
+    tip:"In a binary tree, this order visits node from smallest to largest.",
   },
   "Post-order Traversal":{
     summary:"Left Subtree -> Right Subtree -> Root",
@@ -197,6 +206,7 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
       "  postorder(node->right)",
       "  visit(node)",
     ],
+    tip:"Each node is visited after its children.",
   },
   "Level-order Traversal":{
     summary:"Visits nodes level by level, starting from the root and moving from left to right across each horizontal depth.",
@@ -217,6 +227,7 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
       "    if node.right exists",
       "      enqueue(queue, node.right)",
     ],
+    tip:"The queue visits shallower levels before deeper ones.",
   },
 
   //graphs/maps
@@ -240,6 +251,7 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
       "    end for",
       "  end while"
     ],
+    tip:"In an unweighted grapgh, BFS finds a path with the fewest edges.",
   },
   "Depth-First Search":{
     summary:"Explores as far as possible along one path before backtracking.",
@@ -257,6 +269,7 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
       "    dfs(neighbor)",
       "  end for",
     ],
+    tip:"DFS explores deeply, but its first path is not always the shortest path.",
   },
   "Dijkstra's Pathfinding":{
     summary:"Finds shortest paths from a start node when edge weights are non-negative.",
@@ -281,7 +294,8 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
       "    end for",
       "  end while"
     ],
-  },
+    tip:"Dijkstra requires non-negative edge weights to find shortest paths.",
+  }, 
 };
 
 function App(){
@@ -479,8 +493,10 @@ function App(){
                   <dt>Average Case:</dt>
                   <dd>{details.average}</dd>
                 </div>
+                <div>
                   <dt>Space Complexity:</dt>
                   <dd>{details.spaceComplexity}</dd>
+                </div>
               </dl>
             </div>
           ):( 
@@ -519,9 +535,14 @@ function App(){
         </section>
 
         <aside className="bottom-panel tip-card" aria-labelledby="tip-heading">
-          <h2 id="tip-heading"><span className="tip-heading-icon" aria-hidden="true">☼</span> Tips</h2>
+          <h2 id="tip-heading"><span className="tip-heading-icon" aria-hidden="true">💡</span> Quick Note</h2>
           <div className="tip-copy">
-            {/* left empty */}
+            {/* render details for tip or quick note panel */}
+            {selectedAlgorithm && details ?.tip ? (
+              <p className = "TAKE_NOTE">{details.tip}</p>
+            ):(<p className = "notip">
+                {selectedAlgorithm ? `No notes available for ${selectedAlgorithm}.`:""}
+            </p>)}
           </div>
           <span className="tip-orb" aria-hidden="true">✦</span>
         </aside>
