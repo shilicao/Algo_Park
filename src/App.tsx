@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type AlgorithmCategory = "Sorting" | "Trees" | "Map";
 type AlgorithmDetails = {
@@ -320,6 +320,31 @@ function App(){
   //state holder for array size and speed. 
   const[arraySize, setArraySize] = useState(0);
   const[speed, setSpeed] = useState(1);
+  
+  //needed for wiring that generate animation.
+  const[frames, setFrames] = useState<number[][]>([]);
+  const[frameIndex, setFrameIndex] = useState(0);
+  const[isPlaying, setIsPlaying] = useState(false);
+  const currentFrame = frames[frameIndex];
+  useEffect(()=>{
+    if (isPlaying || frames.length === 0)
+    {
+      return;
+    }
+
+    //stop automatically when the final frame is reached.
+    if (frameIndex >= frames.length - 1)
+    {
+      setIsPlaying(false);
+      return;
+    }
+    //control pause during animation while algorithm is alive.
+    const timer = window.setTimeout(()=>{
+      setFrameIndex((index)=>index + 1);
+    },800/speed
+    );
+    return ()=>window.clearTimeout(timer);
+  }, [isPlaying, frameIndex, frames.length, speed]);
 
   //choose a category reveal its list and search function bar.
   const chooseCategory = (category: AlgorithmCategory) => {
@@ -513,16 +538,39 @@ function App(){
           {/* Playback and speed controls sit below, outside the animation frame. */}
           <div className="playback-toolbar" aria-label="Visualization controls">
             <div className="playback-buttons" role="group" aria-label="Playback">
-              <button className="playback-button play-button" type="button" aria-label="Play">
+              <button className="playback-button play-button" type="button" onClick={()=>{
+                if (frames.length === 0)
+                {
+                  return;
+                }
+                if (frameIndex >= frames.length - 1)
+                {
+                  setFrameIndex(0);
+                }
+                setIsPlaying(true);
+              }}>
                 <span aria-hidden="true">▶</span> Play
               </button>
-              <button className="playback-button" type="button" aria-label="Pause">
+
+              <button className="playback-button" type="button" onClick={()=>{setIsPlaying(false)}}>
                 <span aria-hidden="true">Ⅱ</span> Pause
               </button>
-              <button className="playback-button" type="button" aria-label="Step">
+
+              <button className="playback-button" type="button" onClick = {()=>{
+                if (frames.length === 0)
+                {
+                  return;
+                }
+                setIsPlaying(false);
+                setFrameIndex((index)=>Math.min(index + 1, frames.length - 1));
+              }}>
                 <span aria-hidden="true">›</span> Step
               </button>
-              <button className="playback-button" type="button" aria-label="Reset">
+
+              <button className="playback-button" type="button" onClick={()=>{
+                setIsPlaying(false);
+                setFrameIndex(0);
+              }}>
                 <span aria-hidden="true">↻</span> Reset
               </button>
             </div>
