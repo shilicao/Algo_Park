@@ -410,8 +410,9 @@
 .area-holder {
     display:grid;
     place-items:center;
-    min-height:250px;
-    flex: 0 1 260px;
+    height:260px;
+    min-height:0;
+    flex: none;
     overflow:hidden;
     border:1px solid rgba(74, 190, 255, 0.25);
     border-radius:9px;
@@ -421,6 +422,34 @@
         linear-gradient(rgba(82, 139, 230, 0.09) 1px, transparent 1px),
         linear-gradient(90deg, rgba(82, 139, 230, 0.09) 1px, transparent 1px);
     background-size:36px 36px;
+}
+.area-holder.has-bars {
+    display:flex;
+    align-items:flex-end;
+    justify-content: center;
+    gap: clamp(1px, 0.35vw,4px);
+    box-sizing: border-box;
+    padding:16px 12px 8px;
+}
+.sorting-bar {
+    position: relative;
+    flex:1 1 0;
+    min-width:1px;
+    max-width:24px;
+    border-radius:5px 5px 0 0;
+    background:linear-gradient(180deg, #57e4ff, #2471ff 75%, #563bdb);
+    box-shadow: 0 0 10px rgba(51, 190, 255, 0.35);
+}
+.bar_value {
+    position:absolute;
+    left:50%;
+    bottom:calc(100% + 5px);
+    transform:translateX(-50%);
+    color:#eaf5ff;
+    font:10px/1 Consolas, monospace;
+    white-space:nowrap;
+    text-shadow: 0 0 6px rgba(65, 190, 255, 0.8);
+    pointer-events:none;
 }
 .playback-toolbar {
     display:grid;
@@ -644,7 +673,7 @@
         min-height:auto;
     }
     .area-holder {
-        min-height:240px;
+        height:240px;
     }
     .playback-toolbar {
         grid-template-columns:1fr;

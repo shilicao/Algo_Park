@@ -327,7 +327,7 @@ function App(){
   const[isPlaying, setIsPlaying] = useState(false);
   const currentFrame = frames[frameIndex];
   useEffect(()=>{
-    if (isPlaying || frames.length === 0)
+    if (!isPlaying || frames.length === 0)
     {
       return;
     }
@@ -345,6 +345,29 @@ function App(){
     );
     return ()=>window.clearTimeout(timer);
   }, [isPlaying, frameIndex, frames.length, speed]);
+
+  //second tmp holder when array size changes during animation. arrayvalue holds unsorted array
+  const[arrayValue, setArrayValue] = useState<number[]>([]);
+  useEffect(()=>{
+    if (arraySize === 0)
+    {
+      setArrayValue([]);
+      setFrames([]);
+      setFrameIndex(0);
+      setIsPlaying(false);
+      return;
+    }
+    //AUTO GENERATE NUMBERS for the animation.
+    const tmpArray = Array.from({length:arraySize},()=> Math.floor(Math.random()*100 + 1));
+    setArrayValue(tmpArray);
+
+    //refresh frames
+    setFrames([]);
+    setFrameIndex(0);
+    setIsPlaying(false);
+  },[arraySize]);
+
+  const displayedValues = currentFrame??arrayValue;
 
   //choose a category reveal its list and search function bar.
   const chooseCategory = (category: AlgorithmCategory) => {
@@ -529,9 +552,23 @@ function App(){
               <span>Sorting Section</span>
               <span className = "sizeCount">{arraySize} values</span>
             </div>
-
-            <div className="area-holder">
-              {arraySize === 0 ? "Set an array size to begin" : "Animation"}
+            
+            {/* render frames for animation bars. */}
+            <div className={`area-holder ${arraySize > 0 ? "has-bars":""}`}>
+              {arraySize === 0 ? ("Set an array size to begin" ): 
+              (displayedValues.map((value, index) => {
+                const height = Math.max(6, (value/100)*82); //82 saves space for auto generated number on top of bar.
+                return (
+                  <div className = "sorting-bar" key={index} style={{height:`${height}%`}} title = {`Value:${value}`}>
+                    {arraySize <= 30 && (
+                      <span className = "bar_value">
+                        {value}
+                      </span>
+                    )}
+                  </div>
+                );
+              })
+            )}
             </div>
           </div>
 
