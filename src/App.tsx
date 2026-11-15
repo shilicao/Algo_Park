@@ -1,7 +1,8 @@
 import "./App.css";
 import { useEffect, useState } from "react";
+import { MapVisualizer, TreeVisualizer } from "./AlgorithmVisualizers";
+import { createAnimationFrames, type AlgorithmCategory, type AnimationFrame } from "./animation";
 
-type AlgorithmCategory = "Sorting" | "Trees" | "Map";
 type AlgorithmDetails = {
   summary: string; 
   best:string; 
@@ -321,8 +322,8 @@ function App(){
   const[arraySize, setArraySize] = useState(0);
   const[speed, setSpeed] = useState(1);
   
-  //needed for wiring that generate animation.
-  const[frames, setFrames] = useState<number[][]>([]);
+  // One shared playback cursor works with sorting, tree, and map frame types.
+  const[frames, setFrames] = useState<AnimationFrame[]>([]);
   const[frameIndex, setFrameIndex] = useState(0);
   const[isPlaying, setIsPlaying] = useState(false);
   const currentFrame = frames[frameIndex];
@@ -346,7 +347,7 @@ function App(){
     return ()=>window.clearTimeout(timer);
   }, [isPlaying, frameIndex, frames.length, speed]);
 
-  //second tmp holder when array size changes during animation. arrayvalue holds unsorted array
+  // The unsorted source array remains separate from the snapshots produced by an algorithm.
   const[arrayValue, setArrayValue] = useState<number[]>([]);
   useEffect(()=>{
     if (arraySize === 0)
@@ -361,13 +362,31 @@ function App(){
     const tmpArray = Array.from({length:arraySize},()=> Math.floor(Math.random()*100 + 1));
     setArrayValue(tmpArray);
 
-    //refresh frames
+    // Changing size cancels the old run and returns the playback cursor to the beginning.
     setFrames([]);
     setFrameIndex(0);
     setIsPlaying(false);
   },[arraySize]);
 
-  const displayedValues = currentFrame??arrayValue;
+  // Selecting an algorithm (or changing the array size) creates that algorithm's own trace.
+  useEffect(() => {
+    if (!activeCategory || !selectedAlgorithm ||
+      (activeCategory === "Sorting" && arrayValue.length === 0)) {
+      setFrames([]);
+      setFrameIndex(0);
+      setIsPlaying(false);
+      return;
+    }
+
+    const nextFrames = createAnimationFrames(activeCategory, selectedAlgorithm, arrayValue);
+    setFrames(nextFrames);
+    setFrameIndex(0);
+    setIsPlaying(false);
+  }, [activeCategory, selectedAlgorithm, arrayValue]);
+
+  // Sorting displays the current snapshot; before one exists, show the generated input array.
+  const sortingFrame = currentFrame?.kind === "sorting" ? currentFrame : undefined;
+  const displayedValues = sortingFrame?.values ?? arrayValue;
 
   //choose a category reveal its list and search function bar.
   const chooseCategory = (category: AlgorithmCategory) => {
@@ -513,73 +532,86 @@ function App(){
           </>
           )}
 
-          {/* Keep array size in the algorithm selection. */}
-          <div className="num_entry array-size-control">
-            <div className="Input_heading">
-              <label htmlFor="array_size">Array Size</label>
+          {/* Array size only applies to the sorting category. */}
+          {activeCategory === "Sorting" && (
+            <div className="num_entry array-size-control">
+              <div className="Input_heading">
+                <label htmlFor="array_size">Array Size</label>
+                <input
+                  id="array_size"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={arraySize}
+                  onChange={(event) => {
+                    const value = event.currentTarget.valueAsNumber;
+                    if (Number.isFinite(value)) {
+                      setArraySize(Math.min(100, Math.max(0, value)));
+                    }
+                  }}
+                />
+              </div>
               <input
-                id="array_size"
-                type="number"
+                className="control_range"
+                type="range"
                 min="0"
                 max="100"
                 value={arraySize}
-                onChange={(event) => {
-                  const value = event.currentTarget.valueAsNumber;
-                  if (Number.isFinite(value)) {
-                    setArraySize(Math.min(100, Math.max(0, value)));
-                  }
-                }}
+                aria-label="Array size"
+                onChange={(event) =>
+                  setArraySize(Number(event.currentTarget.value))
+                }
               />
             </div>
-            <input
-              className="control_range"
-              type="range"
-              min="0"
-              max="100"
-              value={arraySize}
-              aria-label="Array size"
-              onChange={(event) =>
-                setArraySize(Number(event.currentTarget.value))
-              }
-            />
-          </div>
+          )}
         </aside>
 
         <section className = "middle area" aria-label = "sorting">
           {/* The rounded arena contains only its heading and visualization. */}
           <div className="sorting-arena">
             <div className = "area-header">
-              <span>Sorting Section</span>
-              <span className = "sizeCount">{arraySize} values</span>
+              <span>{activeCategory ? `${activeCategory} Section` : "Training Ground"}</span>
+              <span className = "sizeCount">
+                {activeCategory === "Sorting" ? `${arraySize} values` :
+                  selectedAlgorithm && frames.length ? `Step ${frameIndex + 1} / ${frames.length}` : ""}
+              </span>
             </div>
             
-            {/* render frames for animation bars. */}
-            <div className={`area-holder ${arraySize > 0 ? "has-bars":""}`}>
-              {arraySize === 0 ? ("Set an array size to begin" ): 
-              (displayedValues.map((value, index) => {
-                const height = Math.max(6, (value/100)*82); //82 saves space for auto generated number on top of bar.
-                return (
-                  <div className = "sorting-bar" key={index} style={{height:`${height}%`}} title = {`Value:${value}`}>
-                    {arraySize <= 30 && (
-                      <span className = "bar_value">
-                        {value}
-                      </span>
-                    )}
-                  </div>
-                );
-              })
-            )}
+            {/* The selected category decides which renderer receives the current frame. */}
+            <div className={`area-holder ${activeCategory === "Sorting" && displayedValues.length ? "has-bars" : ""}`}>
+              {activeCategory === "Sorting" ? (
+                arraySize === 0 ? "Set an array size to begin" :
+                  displayedValues.map((value, index) => {
+                    const height = Math.max(6, (value / 100) * 82);
+                    const active = sortingFrame?.activeIndices.includes(index) ?? false;
+                    const sorted = sortingFrame?.sortedIndices.includes(index) ?? false;
+                    return (
+                      <div
+                        className={`sorting-bar ${active ? "is-active" : ""} ${sorted ? "is-sorted" : ""}`}
+                        key={index}
+                        style={{ height: `${height}%` }}
+                        title={`Value: ${value}`}
+                      >
+                        {arraySize <= 30 && <span className="bar_value">{value}</span>}
+                      </div>
+                    );
+                  })
+              ) : activeCategory === "Trees" ? (
+                currentFrame?.kind === "tree" ? <TreeVisualizer frame={currentFrame} /> :
+                  <span>{selectedAlgorithm ? "Preparing traversal…" : "Choose a tree traversal"}</span>
+              ) : activeCategory === "Map" ? (
+                currentFrame?.kind === "map" ? <MapVisualizer frame={currentFrame} /> :
+                  <span>{selectedAlgorithm ? "Preparing graph search…" : "Choose a map algorithm"}</span>
+              ) : (
+                <span>Choose Sorting, Trees, or Map to begin</span>
+              )}
             </div>
           </div>
 
           {/* Playback and speed controls sit below, outside the animation frame. */}
           <div className="playback-toolbar" aria-label="Visualization controls">
             <div className="playback-buttons" role="group" aria-label="Playback">
-              <button className="playback-button play-button" type="button" onClick={()=>{
-                if (frames.length === 0)
-                {
-                  return;
-                }
+              <button className="playback-button play-button" type="button" disabled={frames.length === 0} onClick={()=>{
                 if (frameIndex >= frames.length - 1)
                 {
                   setFrameIndex(0);
@@ -589,22 +621,18 @@ function App(){
                 <span aria-hidden="true">▶</span> Play
               </button>
 
-              <button className="playback-button" type="button" onClick={()=>{setIsPlaying(false)}}>
+              <button className="playback-button" type="button" disabled={!isPlaying} onClick={()=>{setIsPlaying(false)}}>
                 <span aria-hidden="true">Ⅱ</span> Pause
               </button>
 
-              <button className="playback-button" type="button" onClick = {()=>{
-                if (frames.length === 0)
-                {
-                  return;
-                }
+              <button className="playback-button" type="button" disabled={frames.length === 0} onClick = {()=>{
                 setIsPlaying(false);
                 setFrameIndex((index)=>Math.min(index + 1, frames.length - 1));
               }}>
                 <span aria-hidden="true">›</span> Step
               </button>
 
-              <button className="playback-button" type="button" onClick={()=>{
+              <button className="playback-button" type="button" disabled={frames.length === 0} onClick={()=>{
                 setIsPlaying(false);
                 setFrameIndex(0);
               }}>
