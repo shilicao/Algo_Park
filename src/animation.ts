@@ -1,12 +1,14 @@
 // Typed animation snapshots. let the playback controls advance every category
 // without needing to know how a sorting array, tree, or graph is drawn.
 export type AlgorithmCategory = "Sorting" | "Trees" | "Map";
+export type MetricItem = {label:string; value:number;};
 
 export type SortingFrame = {
   kind: "sorting";
   values: number[];
   activeIndices: number[];
   sortedIndices: number[];
+  metrics:MetricItem[];
 };
 
 export type TreeFrame = {
@@ -14,6 +16,7 @@ export type TreeFrame = {
   activeNodeId: string | null;
   visitedNodeIds: string[];
   visitOrder: string[];
+  metrics?:MetricItem[];
 };
 
 export type MapFrame = {
@@ -23,6 +26,7 @@ export type MapFrame = {
   activeEdge: [string, string] | null;
   pathNodeIds: string[];
   distances: Record<string, number>;
+ metrics?:MetricItem[];
 };
 
 export type AnimationFrame = SortingFrame | TreeFrame | MapFrame;
@@ -68,34 +72,51 @@ export const mapEdges = [
   { from: "G", to: "H", weight: 2 },
 ];
 
+//********************************* SORTING ***********************************
 const makeSortFrame = (
   values: number[],
   activeIndices: number[] = [],
   sortedIndices: number[] = [],
+  metrics:MetricItem[]=[],
 ): SortingFrame => ({
   kind: "sorting",
   values: [...values],
   activeIndices: [...activeIndices],
   sortedIndices: [...sortedIndices],
+  metrics:metrics.map((metric)=>({...metric})),
 });
 
-//*********************************** SORTING ***********************************
 function bubbleSortFrames(input: number[]): SortingFrame[] {
   const values = [...input];
-  const frames = [makeSortFrame(values)];
   const sorted: number[] = [];
+  const counts = {comparisons:0, swaps: 0, writes: 0};
+  const getMetrics = ():MetricItem[] => [
+    {label:"Comparisons", value:counts.comparisons},
+    {label:"Swaps", value:counts.swaps},
+    {label:"Writes", value:counts.writes},
+  ];
+  //grabs data of each frame for different algorithms . 
+  const frames = [makeSortFrame(values, [], [], getMetrics())];
+  for (let i = values.length - 1; i > 0; i--)
+  {
+    for (let j = 0; j < i; j++)
+    {
+      counts.comparisons++;
+      if (values[j] > values[j+1])
+      {
+        [values[j], values[j + 1]] = [values[j+1], values[j]];
+        counts.swaps++;
+        counts.writes = counts.writes + 2; //assign two positions counts as two moves/writes.
 
-  for (let end = values.length - 1; end > 0; end--) {
-    for (let index = 0; index < end; index++) {
-      if (values[index] > values[index + 1]) {
-        [values[index], values[index + 1]] = [values[index + 1], values[index]];
+        frames.push(makeSortFrame(values, [j, j + 1], sorted, getMetrics()));
       }
-      frames.push(makeSortFrame(values, [index, index + 1], sorted));
     }
-    sorted.unshift(end);
+    //makes sure the value is place at i in its sorted spot.
+    sorted.unshift(i);
+    frames.push(makeSortFrame(values,[], sorted, getMetrics()));
   }
 
-  return [...frames, makeSortFrame(values, [], values.map((_, index) => index))];
+  return [...frames, makeSortFrame(values, [], values.map((_, index) => index), getMetrics())];
 }
 
 function selectionSortFrames(input: number[]): SortingFrame[] {
@@ -287,7 +308,8 @@ function treeFrames(algorithm: string): TreeFrame[] {
   }
 
   const frames: TreeFrame[] = [{
-    kind: "tree", activeNodeId: null, visitedNodeIds: [], visitOrder: [],
+    kind: "tree", activeNodeId: null, visitedNodeIds: [], 
+    visitOrder: [], 
   }];
   const visited: string[] = [];
   for (const id of order) {

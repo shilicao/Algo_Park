@@ -326,6 +326,7 @@ function App(){
   const[frames, setFrames] = useState<AnimationFrame[]>([]);
   const[frameIndex, setFrameIndex] = useState(0);
   const[isPlaying, setIsPlaying] = useState(false);
+  const[started, setStarted] = useState(false);
   const currentFrame = frames[frameIndex];
   useEffect(()=>{
     if (!isPlaying || frames.length === 0)
@@ -394,6 +395,10 @@ function App(){
     setSearchQuery("");
     setSelectedAlgorithm(null);
   };
+
+  // use to save the data of animation frames and display in metrics panel. 
+  const finalMetrics = started&&frames.length > 0 && frameIndex === frames.length - 1;
+  const output = frames[frames.length - 1]?.metrics ?? [];
 
   return (
     <main className = {`academy theme-${theme}`}>
@@ -616,6 +621,7 @@ function App(){
                 {
                   setFrameIndex(0);
                 }
+                setStarted(true);
                 setIsPlaying(true);
               }}>
                 <span aria-hidden="true">▶</span> Play
@@ -626,6 +632,7 @@ function App(){
               </button>
 
               <button className="playback-button" type="button" disabled={frames.length === 0} onClick = {()=>{
+                setStarted(true);
                 setIsPlaying(false);
                 setFrameIndex((index)=>Math.min(index + 1, frames.length - 1));
               }}>
@@ -633,6 +640,7 @@ function App(){
               </button>
 
               <button className="playback-button" type="button" disabled={frames.length === 0} onClick={()=>{
+                setStarted(false);
                 setIsPlaying(false);
                 setFrameIndex(0);
               }}>
@@ -703,7 +711,16 @@ function App(){
         <section className="bottom-panel performance-tracker" aria-labelledby="performance-heading">
           <h2 id="performance-heading"><span className="performance-heading-icon" aria-hidden="true">▮▮▮</span> Performance Counters</h2>
           <div className="performance-metrics">
-            {/* left empty */}
+            {isPlaying ? (
+              <p role = "Status">LOADING.....</p>
+            ):finalMetrics?(
+              output.map((metrics)=>(
+                <div className = "performance_details" key = {metrics.label}>
+                  <span>{metrics.label}</span>
+                  <strong>{metrics.value}</strong>
+                </div>
+              ))
+            ):started?(<p>PAUSED</p>):("")}
           </div>
         </section>
 
