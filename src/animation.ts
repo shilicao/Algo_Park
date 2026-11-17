@@ -159,7 +159,14 @@ function insertionSortFrames(input: number[]): SortingFrame[] {
 
 function mergeSortFrames(input: number[]): SortingFrame[] {
   const values = [...input];
-  const frames = [makeSortFrame(values)];
+  const sorted:number[]=[];
+  const counts = {comparisons:0, swaps:0, writes:0}
+  const getMetrics = ():MetricItem[]=>[
+    {label:"Comparisons", value:counts.comparisons},
+    {label:"Swaps", value:counts.swaps},
+    {label:"Writes", value:counts.writes},
+  ];
+  const frames = [makeSortFrame(values,[],[],getMetrics())];
 
   const merge = (left: number, middle: number, right: number) => {
     const leftValues = values.slice(left, middle + 1);
@@ -169,29 +176,36 @@ function mergeSortFrames(input: number[]): SortingFrame[] {
     let target = left;
 
     while (leftIndex < leftValues.length && rightIndex < rightValues.length) {
+      counts.comparisons++;
       const active = [left + leftIndex, middle + 1 + rightIndex];
       if (leftValues[leftIndex] <= rightValues[rightIndex]) {
         values[target] = leftValues[leftIndex++];
       } else {
         values[target] = rightValues[rightIndex++];
       }
-      frames.push(makeSortFrame(values, active));
+      counts.writes++;
+      frames.push(makeSortFrame(values, active, sorted, getMetrics()));
       target++;
     }
     while (leftIndex < leftValues.length) {
       values[target] = leftValues[leftIndex++];
-      frames.push(makeSortFrame(values, [target]));
+      counts.writes++;
+      frames.push(makeSortFrame(values, [target], sorted, getMetrics()));
       target++;
     }
     while (rightIndex < rightValues.length) {
       values[target] = rightValues[rightIndex++];
-      frames.push(makeSortFrame(values, [target]));
+      counts.writes++
+      frames.push(makeSortFrame(values, [target], sorted, getMetrics()));
       target++;
     }
   };
 
   const divide = (left: number, right: number) => {
-    if (left >= right) return;
+    if (left >= right) 
+    {
+      return;
+    }
     const middle = Math.floor((left + right) / 2);
     divide(left, middle);
     divide(middle + 1, right);
@@ -199,34 +213,56 @@ function mergeSortFrames(input: number[]): SortingFrame[] {
   };
 
   divide(0, values.length - 1);
-  return [...frames, makeSortFrame(values, [], values.map((_, index) => index))];
+  return [...frames, makeSortFrame(values, [], values.map((_, index) => index), getMetrics())];
 }
 
 function quickSortFrames(input: number[]): SortingFrame[] {
-  const values = [...input];
-  const frames = [makeSortFrame(values)];
   const sorted = new Set<number>();
+  const values = [...input];
+  const counts = {comparisons:0, swaps:0, writes:0}
+  const getMetrics = ():MetricItem[]=>[
+    {label:"Comparisons", value:counts.comparisons},
+    {label:"Swaps", value:counts.swaps},
+    {label:"Writes", value:counts.writes},
+  ];
+  const frames = [makeSortFrame(values,[],[],getMetrics())];
 
   const partition = (low: number, high: number) => {
     const pivot = values[high];
     let boundary = low;
     for (let index = low; index < high; index++) {
-      frames.push(makeSortFrame(values, [index, high], [...sorted]));
+      // Every item examined against the pivot counts as one comparison.
+      counts.comparisons++;
+      frames.push(makeSortFrame(values, [index, high], [...sorted], getMetrics()));
       if (values[index] <= pivot) {
-        [values[boundary], values[index]] = [values[index], values[boundary]];
-        frames.push(makeSortFrame(values, [boundary, index, high], [...sorted]));
+        // Do not count exchanging an element with itself as a swap.
+        if (boundary !== index) {
+          [values[boundary], values[index]] = [values[index], values[boundary]];
+          counts.swaps++;
+          counts.writes += 2;
+        }
+        frames.push(makeSortFrame(values, [boundary, index, high], [...sorted], getMetrics()));
         boundary++;
       }
     }
-    [values[boundary], values[high]] = [values[high], values[boundary]];
+    // Place the pivot; count it only when it moves to a different position.
+    if (boundary !== high) {
+      [values[boundary], values[high]] = [values[high], values[boundary]];
+      counts.swaps++;
+      counts.writes += 2;
+    }
     sorted.add(boundary);
-    frames.push(makeSortFrame(values, [boundary], [...sorted]));
+    frames.push(makeSortFrame(values, [boundary], [...sorted], getMetrics()));
     return boundary;
   };
 
   const sort = (low: number, high: number) => {
-    if (low >= high) {
-      if (low === high) sorted.add(low);
+    if (low >= high) 
+    {
+      if (low === high) 
+      {
+        sorted.add(low);
+      }
       return;
     }
     const pivotIndex = partition(low, high);
@@ -235,24 +271,42 @@ function quickSortFrames(input: number[]): SortingFrame[] {
   };
 
   sort(0, values.length - 1);
-  return [...frames, makeSortFrame(values, [], values.map((_, index) => index))];
+  return [...frames, makeSortFrame(values, [], values.map((_, index) => index), getMetrics())];
 }
 
 function heapSortFrames(input: number[]): SortingFrame[] {
   const values = [...input];
-  const frames = [makeSortFrame(values)];
-  const sorted: number[] = [];
+  const sorted:number[]=[];
+  const counts = {comparisons:0, swaps:0, writes:0}
+  const getMetrics = ():MetricItem[]=>[
+    {label:"Comparisons", value:counts.comparisons},
+    {label:"Swaps", value:counts.swaps},
+    {label:"Writes", value:counts.writes},
+  ];
+  const frames = [makeSortFrame(values,[],[],getMetrics())];
 
   const siftDown = (size: number, root: number) => {
     let largest = root;
     const left = root * 2 + 1;
     const right = left + 1;
-    if (left < size && values[left] > values[largest]) largest = left;
-    if (right < size && values[right] > values[largest]) largest = right;
-    frames.push(makeSortFrame(values, [root, left, right].filter((index) => index < size), sorted));
+    if (left < size) {
+      counts.comparisons++;
+      if (values[left] > values[largest]) {
+        largest = left;
+      }
+    }
+    if (right < size) {
+      counts.comparisons++;
+      if (values[right] > values[largest]) {
+        largest = right;
+      }
+    }
+    frames.push(makeSortFrame(values, [root, left, right].filter((index) => index < size), sorted, getMetrics()));
     if (largest !== root) {
       [values[root], values[largest]] = [values[largest], values[root]];
-      frames.push(makeSortFrame(values, [root, largest], sorted));
+      counts.swaps++;
+      counts.writes += 2;
+      frames.push(makeSortFrame(values, [root, largest], sorted, getMetrics()));
       siftDown(size, largest);
     }
   };
@@ -262,12 +316,14 @@ function heapSortFrames(input: number[]): SortingFrame[] {
   }
   for (let end = values.length - 1; end > 0; end--) {
     [values[0], values[end]] = [values[end], values[0]];
+    counts.swaps++;
+    counts.writes += 2;
     sorted.unshift(end);
-    frames.push(makeSortFrame(values, [0, end], sorted));
+    frames.push(makeSortFrame(values, [0, end], sorted, getMetrics()));
     siftDown(end, 0);
   }
 
-  return [...frames, makeSortFrame(values, [], values.map((_, index) => index))];
+  return [...frames, makeSortFrame(values, [], values.map((_, index) => index),getMetrics())];
 }
 
 function selectionSortFrames(input: number[]): SortingFrame[] {
