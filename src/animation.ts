@@ -107,9 +107,10 @@ function bubbleSortFrames(input: number[]): SortingFrame[] {
         [values[j], values[j + 1]] = [values[j+1], values[j]];
         counts.swaps++;
         counts.writes = counts.writes + 2; //assign two positions counts as two moves/writes.
-
-        frames.push(makeSortFrame(values, [j, j + 1], sorted, getMetrics()));
       }
+      //save every comparisons.
+      frames.push(makeSortFrame(values, [j, j + 1], sorted, getMetrics()));
+
     }
     //makes sure the value is place at i in its sorted spot.
     sorted.unshift(i);
@@ -117,25 +118,6 @@ function bubbleSortFrames(input: number[]): SortingFrame[] {
   }
 
   return [...frames, makeSortFrame(values, [], values.map((_, index) => index), getMetrics())];
-}
-
-function selectionSortFrames(input: number[]): SortingFrame[] {
-  const values = [...input];
-  const frames = [makeSortFrame(values)];
-  const sorted: number[] = [];
-
-  for (let start = 0; start < values.length - 1; start++) {
-    let minimum = start;
-    for (let index = start + 1; index < values.length; index++) {
-      frames.push(makeSortFrame(values, [minimum, index], sorted));
-      if (values[index] < values[minimum]) minimum = index;
-    }
-    [values[start], values[minimum]] = [values[minimum], values[start]];
-    sorted.push(start);
-    frames.push(makeSortFrame(values, [start, minimum], sorted));
-  }
-
-  return [...frames, makeSortFrame(values, [], values.map((_, index) => index))];
 }
 
 function insertionSortFrames(input: number[]): SortingFrame[] {
@@ -269,6 +251,41 @@ function heapSortFrames(input: number[]): SortingFrame[] {
   }
 
   return [...frames, makeSortFrame(values, [], values.map((_, index) => index))];
+}
+
+function selectionSortFrames(input: number[]): SortingFrame[] {
+  const values = [...input];
+  const sorted: number[] = [];
+  const counts = {comparisons:0, swaps: 0, writes: 0};
+  const getMetrics = ():MetricItem[] => [
+    {label:"Comparisons", value:counts.comparisons},
+    {label:"Swaps", value:counts.swaps},
+    {label:"Writes", value:counts.writes},
+  ];
+
+  const frames = [makeSortFrame(values, [],[], getMetrics())];
+  for (let i = 0; i < values.length-1; i++)
+  {
+    let tmp = i;
+    for (let j = i + 1; j < values.length; j++)
+    {
+      counts.comparisons++;
+      frames.push(makeSortFrame(values, [tmp, j], sorted));
+      if (values[j] < values[tmp])
+      {
+        tmp = j;
+      }
+    }
+    if (tmp !== i)
+    {
+      [values[i], values[tmp]] = [values[tmp], values[i]];
+      counts.swaps++;
+      counts.writes = counts.writes + 2;
+    }
+    sorted.push(i);
+    frames.push(makeSortFrame(values, [i, tmp], sorted, getMetrics()));
+  }
+  return [...frames, makeSortFrame(values, [], values.map((_,index) => index), getMetrics())];
 }
 
 function sortingFrames(algorithm: string, values: number[]): SortingFrame[] {
