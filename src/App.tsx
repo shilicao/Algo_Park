@@ -367,6 +367,7 @@ function App(){
     setFrames([]);
     setFrameIndex(0);
     setIsPlaying(false);
+    setStarted(false);
   },[arraySize]);
 
   // Selecting an algorithm (or changing the array size) creates that algorithm's own trace.
@@ -712,7 +713,7 @@ function App(){
           <h2 id="performance-heading"><span className="performance-heading-icon" aria-hidden="true">▮▮▮</span> Performance Counters</h2>
           <div className="performance-metrics">
             {isPlaying ? (
-              <p role = "Status">LOADING.....</p>
+              <p className="metrics-loading" role="status">LOADING...</p>
             ):finalMetrics?(
               output.map((metrics)=>(
                 <div className = "performance_details" key = {metrics.label}>
@@ -720,7 +721,7 @@ function App(){
                   <strong>{metrics.value}</strong>
                 </div>
               ))
-            ):started?(<p>PAUSED</p>):("")}
+            ):started?(<p className="metrics-paused">PAUSED</p>):("")}
           </div>
         </section>
 

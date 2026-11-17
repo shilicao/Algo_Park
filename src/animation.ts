@@ -16,7 +16,7 @@ export type TreeFrame = {
   activeNodeId: string | null;
   visitedNodeIds: string[];
   visitOrder: string[];
-  metrics?:MetricItem[];
+  metrics:MetricItem[];
 };
 
 export type MapFrame = {
@@ -376,23 +376,31 @@ function sortingFrames(algorithm: string, values: number[]): SortingFrame[] {
 
 //******************************** TREES ***************************************
 function treeFrames(algorithm: string): TreeFrame[] {
-  const order: string[] = [];
-  const visit = (id: string | null) => {
+  const order:{id:string; depth:number}[] = [];
+  const visit = (id: string | null, depth = 0) => {
     if (!id) return;
     const node = treeNodes.find((candidate) => candidate.id === id);
     if (!node) return;
     const left = id === "A" ? "B" : id === "B" ? "D" : id === "C" ? "F" : null;
     const right = id === "A" ? "C" : id === "B" ? "E" : id === "C" ? "G" : null;
 
-    if (algorithm === "Pre-order Traversal") order.push(id);
-    visit(left);
-    if (algorithm === "In-order Traversal") order.push(id);
-    visit(right);
-    if (algorithm === "Post-order Traversal") order.push(id);
+    if (algorithm === "Pre-order Traversal") order.push({id, depth});
+    visit(left, depth + 1);
+    if (algorithm === "In-order Traversal") order.push({id, depth});
+    visit(right, depth + 1);
+    if (algorithm === "Post-order Traversal") order.push({id, depth});
   };
 
   if (algorithm === "Level-order Traversal") {
-    order.push(...["A", "B", "C", "D", "E", "F", "G"]);
+    order.push(
+    { id: "A", depth: 0 },
+    { id: "B", depth: 1 },
+    { id: "C", depth: 1 },
+    { id: "D", depth: 2 },
+    { id: "E", depth: 2 },
+    { id: "F", depth: 2 },
+    { id: "G", depth: 2 },
+    );
   } else {
     visit("A");
   }
@@ -400,28 +408,37 @@ function treeFrames(algorithm: string): TreeFrame[] {
   const frames: TreeFrame[] = [{
     kind: "tree", activeNodeId: null, visitedNodeIds: [], 
     visitOrder: [], 
+    metrics:[
+      {label:"Node visited", value:0},
+      {label:"Maximum depth", value:0},
+    ],
   }];
   const visited: string[] = [];
-  for (const id of order) {
+  let maxDepth = 0;
+  for (const {id, depth} of order) {
     visited.push(id);
+    maxDepth = Math.max(maxDepth, depth);
     frames.push({
       kind: "tree",
       activeNodeId: id,
       visitedNodeIds: [...visited],
       visitOrder: [...visited],
+      metrics:[
+        {label:"Node visited", value:visited.length},
+        {label:"Maximum depth", value: maxDepth},
+      ],
     });
   }
   return frames;
 }
 
+//********************************* GRAPHS & MAPS ***********************************
 const graphNeighbors = (id: string) => mapEdges
   .filter((edge) => edge.from === id || edge.to === id)
   .map((edge) => ({
     id: edge.from === id ? edge.to : edge.from,
     weight: edge.weight,
   }));
-
-//********************************* GRAPHS & MAPS ***********************************
 const mapFrame = (
   currentNodeId: string | null,
   visitedNodeIds: string[],
