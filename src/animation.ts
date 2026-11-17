@@ -26,7 +26,7 @@ export type MapFrame = {
   activeEdge: [string, string] | null;
   pathNodeIds: string[];
   distances: Record<string, number>;
- metrics?:MetricItem[];
+ metrics:MetricItem[];
 };
 
 export type AnimationFrame = SortingFrame | TreeFrame | MapFrame;
@@ -409,7 +409,7 @@ function treeFrames(algorithm: string): TreeFrame[] {
     kind: "tree", activeNodeId: null, visitedNodeIds: [], 
     visitOrder: [], 
     metrics:[
-      {label:"Node visited", value:0},
+      {label:"Nodes visited", value:0},
       {label:"Maximum depth", value:0},
     ],
   }];
@@ -424,7 +424,7 @@ function treeFrames(algorithm: string): TreeFrame[] {
       visitedNodeIds: [...visited],
       visitOrder: [...visited],
       metrics:[
-        {label:"Node visited", value:visited.length},
+        {label:"Nodes visited", value:visited.length},
         {label:"Maximum depth", value: maxDepth},
       ],
     });
@@ -439,12 +439,14 @@ const graphNeighbors = (id: string) => mapEdges
     id: edge.from === id ? edge.to : edge.from,
     weight: edge.weight,
   }));
+
 const mapFrame = (
   currentNodeId: string | null,
   visitedNodeIds: string[],
   activeEdge: [string, string] | null,
   pathNodeIds: string[],
   distances: Record<string, number>,
+  metrics:MetricItem[]=[],
 ): MapFrame => ({
   kind: "map",
   currentNodeId,
@@ -452,6 +454,7 @@ const mapFrame = (
   activeEdge,
   pathNodeIds: [...pathNodeIds],
   distances: { ...distances },
+  metrics:metrics.map((metric)=>({...metric}))
 });
 
 function pathTo(target: string, previous: Record<string, string | undefined>): string[] {
@@ -469,23 +472,33 @@ function breadthFirstFrames(): MapFrame[] {
   const previous: Record<string, string | undefined> = {};
   const queue = ["A"];
   const visited = new Set<string>(["A"]);
+  distances.A = 0
   const frames = [mapFrame(null, [], null, [], { ...distances, A: 0 })];
-  distances.A = 0;
+  let examineEdges = 0;
+  let queueCount= 1; //staring node is enqueue.
+  const getMetrics = ():MetricItem[]=>[
+    {label:"Nodes visited",value:visited.size},
+    {label:"Edges examined", value:examineEdges},
+    {label:"Queue operations", value:queueCount},
+  ];
 
   while (queue.length) {
     const current = queue.shift()!;
-    frames.push(mapFrame(current, [...visited], null, [], distances));
+    queueCount++;
+    frames.push(mapFrame(current, [...visited], null, [], distances, getMetrics()));
     for (const neighbor of graphNeighbors(current)) {
+      examineEdges++;
       if (visited.has(neighbor.id)) continue;
       visited.add(neighbor.id);
       previous[neighbor.id] = current;
       distances[neighbor.id] = distances[current] + 1;
-      frames.push(mapFrame(current, [...visited], [current, neighbor.id], [], distances));
+      frames.push(mapFrame(current, [...visited], [current, neighbor.id], [], distances, getMetrics()));
       queue.push(neighbor.id);
+      queueCount++;
     }
   }
 
-  return [...frames, mapFrame("H", [...visited], null, pathTo("H", previous), distances)];
+  return [...frames, mapFrame("H", [...visited], null, pathTo("H", previous), distances, getMetrics())];
 }
 
 function depthFirstFrames(): MapFrame[] {
@@ -493,24 +506,34 @@ function depthFirstFrames(): MapFrame[] {
   const previous: Record<string, string | undefined> = {};
   const stack = ["A"];
   const visited = new Set<string>();
+  distances.A = 0;
   const frames = [mapFrame(null, [], null, [], distances)];
-
+  let examineEdges = 0;
+  let stackCount= 1; 
+  const getMetrics = ():MetricItem[]=>[
+    {label:"Nodes visited",value:visited.size},
+    {label:"Edges examined", value:examineEdges},
+    {label:"Stack operations", value:stackCount},
+  ];
   while (stack.length) {
     const current = stack.pop()!;
+    stackCount++;
     if (visited.has(current)) continue;
     visited.add(current);
     distances[current] = current === "A" ? 0 : distances[previous[current] ?? "A"] + 1;
-    frames.push(mapFrame(current, [...visited], null, [], distances));
+    frames.push(mapFrame(current, [...visited], null, [], distances, getMetrics()));
     const neighbors = graphNeighbors(current).reverse();
     for (const neighbor of neighbors) {
+      examineEdges++;
       if (visited.has(neighbor.id)) continue;
       previous[neighbor.id] ??= current;
       stack.push(neighbor.id);
-      frames.push(mapFrame(current, [...visited], [current, neighbor.id], [], distances));
+      stackCount++;
+      frames.push(mapFrame(current, [...visited], [current, neighbor.id], [], distances, getMetrics()));
     }
   }
 
-  return [...frames, mapFrame("H", [...visited], null, pathTo("H", previous), distances)];
+  return [...frames, mapFrame("H", [...visited], null, pathTo("H", previous), distances, getMetrics())];
 }
 
 function dijkstraFrames(): MapFrame[] {
@@ -519,6 +542,13 @@ function dijkstraFrames(): MapFrame[] {
   const visited = new Set<string>();
   distances.A = 0;
   const frames = [mapFrame(null, [], null, [], distances)];
+  let examineEdges = 0;
+  let distanceUpdates= 0; 
+  const getMetrics = ():MetricItem[]=>[
+    {label:"Nodes visited",value:visited.size},
+    {label:"Edges examined", value:examineEdges},
+    {label:"Distance", value:distanceUpdates},
+  ];
 
   while (visited.size < mapNodes.length) {
     const current = mapNodes
@@ -528,19 +558,21 @@ function dijkstraFrames(): MapFrame[] {
     if (!current || distances[current] === Infinity) break;
 
     visited.add(current);
-    frames.push(mapFrame(current, [...visited], null, [], distances));
+    frames.push(mapFrame(current, [...visited], null, [], distances, getMetrics()));
     for (const neighbor of graphNeighbors(current)) {
+      examineEdges++;
       if (visited.has(neighbor.id)) continue;
       const candidateDistance = distances[current] + neighbor.weight;
       if (candidateDistance < distances[neighbor.id]) {
         distances[neighbor.id] = candidateDistance;
         previous[neighbor.id] = current;
+        distanceUpdates++;
       }
-      frames.push(mapFrame(current, [...visited], [current, neighbor.id], [], distances));
+      frames.push(mapFrame(current, [...visited], [current, neighbor.id], [], distances, getMetrics()));
     }
   }
 
-  return [...frames, mapFrame("H", [...visited], null, pathTo("H", previous), distances)];
+  return [...frames, mapFrame("H", [...visited], null, pathTo("H", previous), distances, getMetrics())];
 }
 
 function mapFrames(algorithm: string): MapFrame[] {
