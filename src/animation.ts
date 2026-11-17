@@ -117,27 +117,44 @@ function bubbleSortFrames(input: number[]): SortingFrame[] {
     frames.push(makeSortFrame(values,[], sorted, getMetrics()));
   }
 
-  return [...frames, makeSortFrame(values, [], values.map((_, index) => index), getMetrics())];
+  return [...frames, makeSortFrame (values, [], values.map((_, index) => index), getMetrics())];
 }
 
 function insertionSortFrames(input: number[]): SortingFrame[] {
   const values = [...input];
-  const frames = [makeSortFrame(values)];
+  const sorted:number[]=[];
+  const counts = {comparisons:0, swaps:0, writes:0}
+  const getMetrics = ():MetricItem[]=>[
+    {label:"Comparisons", value:counts.comparisons},
+    {label:"Swaps", value:counts.swaps},
+    {label:"Writes", value:counts.writes},
+  ];
+  const frames = [makeSortFrame(values,[],[],getMetrics())];
 
-  for (let index = 1; index < values.length; index++) {
-    const key = values[index];
-    let cursor = index - 1;
-    while (cursor >= 0 && values[cursor] > key) {
-      frames.push(makeSortFrame(values, [cursor, cursor + 1]));
-      values[cursor + 1] = values[cursor];
-      frames.push(makeSortFrame(values, [cursor, cursor + 1]));
-      cursor--;
+  //be sure the loop grabs the final item. No swap for insertion sort
+  for (let i = 1; i < values.length; i++)
+  {
+    const key = values[i];
+    let tmp = i - 1;
+    while (tmp >= 0)
+    {
+      counts.comparisons++;
+      frames.push(makeSortFrame(values, [tmp, tmp+1],sorted, getMetrics()));
+      if(values[tmp] <= key)
+      {
+        break;
+      }
+      values[tmp+1] = values[tmp];
+      counts.writes++;
+      frames.push(makeSortFrame(values, [tmp, tmp + 1], sorted, getMetrics()));
+      tmp--;
     }
-    values[cursor + 1] = key;
-    frames.push(makeSortFrame(values, [cursor + 1]));
+    values[tmp+1] = key;
+    counts.writes++;
+    sorted.push(i);
+    frames.push(makeSortFrame(values, [tmp + 1], sorted, getMetrics()));
   }
-
-  return [...frames, makeSortFrame(values, [], values.map((_, index) => index))];
+  return [...frames, makeSortFrame(values, [], values.map((_, index) => index), getMetrics())];
 }
 
 function mergeSortFrames(input: number[]): SortingFrame[] {
@@ -270,7 +287,7 @@ function selectionSortFrames(input: number[]): SortingFrame[] {
     for (let j = i + 1; j < values.length; j++)
     {
       counts.comparisons++;
-      frames.push(makeSortFrame(values, [tmp, j], sorted));
+      frames.push(makeSortFrame(values, [tmp, j], sorted, getMetrics()));
       if (values[j] < values[tmp])
       {
         tmp = j;
