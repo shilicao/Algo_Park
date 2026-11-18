@@ -302,6 +302,8 @@ const algoDetails:Partial<Record<string, AlgorithmDetails>> =
 function App(){
   // variable declaration and make the "dark" as the default state
   const[theme, setTheme] = useState<"dark" | "light">("dark");
+  // The top navigation currently switches its active tab; Quest content can be added later.
+  const [activeTopTab, setActiveTopTab] = useState<"Training" | "Quest">("Training");
   const toggleTheme = ()=> {
     setTheme((currentTheme) => currentTheme === "dark"?"light":"dark");
   };
@@ -431,13 +433,28 @@ function App(){
             Algo{" "}Academy
           </span>
         </a>
-        <nav className = "navigation" aria-label = "Main navigation">
-            <a className = "active" href = "#">Training</a>
-            <a href = "#">Quest</a>
-            <a href = "#">Library</a>
+        <nav className="navigation" aria-label="Main navigation">
+          <button
+            className={activeTopTab === "Training" ? "active" : ""}
+            type="button"
+            aria-pressed={activeTopTab === "Training"}
+            onClick={() => setActiveTopTab("Training")}
+          >
+            Training
+          </button>
+          <button
+            className={activeTopTab === "Quest" ? "active" : ""}
+            type="button"
+            aria-pressed={activeTopTab === "Quest"}
+            onClick={() => setActiveTopTab("Quest")}
+          >
+            Quest
+            {activeTopTab === "Quest" && (
+              <span className="quest-rank">★ Iron · Lv. 01</span>
+            )}
+          </button>
         </nav>
         <div className = "rhs-actions">
-          <span className = "level">★ Iron · Lv. 01</span>
           <button className = "theme-toggle" type = "button" 
           onClick={toggleTheme} aria-label = {theme === "dark"?"Switch to light theme":
           "Switch to dark theme"} aria-pressed = {theme === "dark"}>
